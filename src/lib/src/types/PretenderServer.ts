@@ -1,1 +1,1 @@
-export { Server as PretenderServer } from 'pretender';
+export type { Server as PretenderServer } from 'pretender';

@@ -5,21 +5,6 @@ import { isRequestLink, runGenerator } from './handleRequest';
 import { BaseContext, Context, RequestHandler, PretenderServer, PretenderServerRequestMethod,
   ResponseHandler } from './types';
 
-// export type HandleContext = {
-//   (context: Context): Context;
-// };
-//
-// interface IServer {
-//   delete: RequestHandler;
-//   get: RequestHandler;
-//   head: RequestHandler;
-//   options: RequestHandler;
-//   patch: RequestHandler;
-//   post: RequestHandler;
-//   put: RequestHandler;
-//   handleContext: HandleContext;
-// }
-
 export class Server<TContext extends BaseContext = Context> {
   public readonly pretenderServer: PretenderServer;
 
@@ -52,7 +37,7 @@ let server: PretenderServer;
 export function createServer<TContext extends BaseContext = Context>(): Server<TContext> {
   server = server ?? (new Pretender());
 
-  server.unhandledRequest = function (verb, path, request) {
+  server.unhandledRequest = function (_verb, _path, request) {
     // @ts-ignore
     request.passthrough();
   };
