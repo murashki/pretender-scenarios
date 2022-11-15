@@ -4,7 +4,7 @@ import { Context } from './types';
 export function createContext(): Context {
   return {
     getCurrentRequest() {
-      throw new Error('There is no request yet');
+      throw new Error('There was no request yet');
     },
     response: createResponse,
     passthrough: createPassthrough,

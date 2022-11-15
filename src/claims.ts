@@ -45,11 +45,7 @@ type ClaimResponse = {
 };
 
 server.get('/claims/*', function *(ctx) {
-  console.log('fakeRequest', ctx.getCurrentRequest());
   yield ctx.response<ClaimResponse>({ claims: [{ id: 'cmd 1' }] });
 
-  console.log('fakeRequest', ctx.getCurrentRequest());
   yield ctx.response<ClaimResponse>({ claims: [{ id: 'cmd 2' }] });
-
-  yield ctx.shutdown();
 });

@@ -2,19 +2,19 @@ import Pretender from 'pretender';
 
 import { createContext } from './context';
 import { isRequestLink, runGenerator } from './handleRequest';
-import { BaseContext, Context, RequestHandler, PretenderServer, PretenderServerRequestMethod,
-  ResponseHandler } from './types';
+import { BaseContext, Context, FakeRequest, RequestHandler, ResponseData, ResponseHandler,
+  PretenderServer, PretenderServerRequestMethod } from './types';
 
 export class Server<TContext extends BaseContext = Context> {
   public readonly pretenderServer: PretenderServer;
 
-  public delete: RequestHandler<TContext>;
-  public get: RequestHandler<TContext>;
-  public head: RequestHandler<TContext>;
-  public options: RequestHandler<TContext>;
-  public patch: RequestHandler<TContext>;
-  public post: RequestHandler<TContext>;
-  public put: RequestHandler<TContext>;
+  public readonly delete: RequestHandler<TContext>;
+  public readonly get: RequestHandler<TContext>;
+  public readonly head: RequestHandler<TContext>;
+  public readonly options: RequestHandler<TContext>;
+  public readonly patch: RequestHandler<TContext>;
+  public readonly post: RequestHandler<TContext>;
+  public readonly put: RequestHandler<TContext>;
 
   constructor(pretenderServer: PretenderServer) {
     this.pretenderServer = pretenderServer;
@@ -29,13 +29,27 @@ export class Server<TContext extends BaseContext = Context> {
 
   handleContext(context: Context): Context {
     return context;
-  };
+  }
+
+  logInterceptedRequest(urlExpression: string, request: FakeRequest, response: ResponseData) {
+    const label = 'Fake api request intercept ' + urlExpression;
+    let json;
+    try {
+      json = JSON.parse(response[2]);
+    } catch (error) {}
+    console.groupCollapsed(label);
+    console.log('queryParams', request.queryParams);
+    console.log('responseCode', response[0]);
+    console.log('responseHeaders', response[1]);
+    console.log('response', json ?? response[2]);
+    console.groupEnd();
+  }
 }
 
 let server: PretenderServer;
 
 export function createServer<TContext extends BaseContext = Context>(): Server<TContext> {
-  server = server ?? (new Pretender());
+  server = server ?? new Pretender();
 
   server.unhandledRequest = function (_verb, _path, request) {
     // @ts-ignore
@@ -60,7 +74,7 @@ function createRequestHandler(
   server: Server,
   pretenderServerRequestMethod: PretenderServerRequestMethod,
 ) {
-  return function(urlExpression: string, responseHandler: ResponseHandler) {
+  return function (urlExpression: string, responseHandler: ResponseHandler) {
     const context = server.handleContext(createContext());
     const responseHandlerState = {
       shutdown: false,
@@ -69,11 +83,15 @@ function createRequestHandler(
       instance: null,
     };
 
-    pretenderServerRequestMethod.call(server.pretenderServer, urlExpression, (request) => {
-      context.getCurrentRequest = function() {
+    pretenderServerRequestMethod.call(server.pretenderServer, urlExpression, request => {
+      context.getCurrentRequest = function () {
         return request;
       };
-      return runGenerator(responseHandlerState);
+      const response = runGenerator(responseHandlerState);
+
+      server.logInterceptedRequest(urlExpression, request, response);
+
+      return response;
     });
-  }
+  };
 }
