@@ -1,7 +1,3 @@
-const NativeXMLHttpRequest = window.XMLHttpRequest;
+// Use it right after server creation
 
-window.XMLHttpRequest = function XMLHttpRequest() {
-  const request = new NativeXMLHttpRequest();
-  delete request.onloadend;
-  return request;
-};
+require('./onloadendFixFn').onloadendFixFn();

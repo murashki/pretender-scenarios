@@ -44,12 +44,14 @@ export class Server<TContext extends BaseContext = Context> {
     console.log('response', json ?? response[2]);
     console.groupEnd();
   }
+
+  shutdown() {
+    this.pretenderServer.shutdown();
+  }
 }
 
-let server: PretenderServer;
-
 export function createServer<TContext extends BaseContext = Context>(): Server<TContext> {
-  server = server ?? new Pretender();
+  const server = new Pretender();
 
   server.unhandledRequest = function (_verb, _path, request) {
     // @ts-ignore

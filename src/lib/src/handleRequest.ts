@@ -20,13 +20,17 @@ export function runGenerator(responseHandlerState: ResponseHandlerState): Respon
   }
 
   if (responseHandlerState.instance == null) {
-    responseHandlerState.instance = responseHandlerState.responseHandler(responseHandlerState.context);
+    responseHandlerState.instance = responseHandlerState.responseHandler(
+      responseHandlerState.context,
+    );
   }
 
   const iteratorResult = responseHandlerState.instance.next();
 
   if (iteratorResult.done) {
-    responseHandlerState.instance = responseHandlerState.responseHandler(responseHandlerState.context);
+    responseHandlerState.instance = responseHandlerState.responseHandler(
+      responseHandlerState.context,
+    );
     return runGenerator(responseHandlerState);
   }
 
