@@ -1,6 +1,6 @@
-import { ResponseData } from './index';
+import { ResponseData } from './';
 
 export type ResponseCommand = {
   type: 'RESPONSE';
-  payload: ResponseData;
+  payload: ResponseData | (() => ResponseData);
 };

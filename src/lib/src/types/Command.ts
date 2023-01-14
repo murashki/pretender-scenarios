@@ -1,6 +1,3 @@
-import { PassthroughCommand, ResponseCommand, ShutdownCommand } from './index';
+import { PassthroughCommand, ResponseCommand, ShutdownCommand, TakeRequestCommand } from './';
 
-export type Command =
-  | ResponseCommand
-  | PassthroughCommand
-  | ShutdownCommand;
+export type Command = ResponseCommand | PassthroughCommand | ShutdownCommand | TakeRequestCommand;

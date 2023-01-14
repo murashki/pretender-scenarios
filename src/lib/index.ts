@@ -1,10 +1,10 @@
-export * from './src/command';
-export * from './src/context';
 export * from './src/createServer';
 
 export * from './src/types/BaseContext';
+export * from './src/types/CheckRequest';
 export * from './src/types/Command';
 export * from './src/types/Context';
+export * from './src/types/ContextRequest';
 export * from './src/types/FakeRequest';
 export * from './src/types/GetCurrentRequest';
 export * from './src/types/PassthroughCommand';
@@ -17,4 +17,6 @@ export * from './src/types/ResponseData';
 export * from './src/types/ResponseHandler';
 export * from './src/types/ShutdownCommand';
 export * from './src/types/ShutdownCommandCreator';
+export * from './src/types/TakeRequestCommand';
+export * from './src/types/TakeRequestCommandCreator';
 export * from './src/types/Verb';

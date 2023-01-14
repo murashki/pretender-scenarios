@@ -1,5 +1,5 @@
-import { FakeRequest } from './index';
+import { ContextRequest } from './';
 
 export type GetCurrentRequest = {
-  (): FakeRequest;
+  (): ContextRequest;
 };

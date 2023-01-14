@@ -1,4 +1,4 @@
-import { ShutdownCommand } from './index';
+import { ShutdownCommand } from './';
 
 export type ShutdownCommandCreator = {
   (): ShutdownCommand;

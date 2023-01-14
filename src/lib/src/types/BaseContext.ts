@@ -1,13 +1,15 @@
 import {
-  FakeRequest,
+  ContextRequest,
   PassthroughCommand,
   ResponseCommand,
   ShutdownCommand,
-} from './index';
+  TakeRequestCommand,
+} from './';
 
 export type BaseContext = {
-  getCurrentRequest: (...args: any[]) => FakeRequest;
+  getCurrentRequest: (...args: any[]) => ContextRequest;
   response: (...args: any[]) => ResponseCommand;
   passthrough: (...args: any[]) => PassthroughCommand;
   shutdown: (...args: any[]) => ShutdownCommand;
+  takeRequest: (...args: any[]) => TakeRequestCommand;
 };

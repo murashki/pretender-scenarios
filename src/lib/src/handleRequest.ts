@@ -1,50 +1,85 @@
-import { PASSTHROUGH_COMMAND_TYPE, RESPONSE_COMMAND_TYPE, SHUTDOWN_COMMAND_TYPE } from './command';
-import { Command, ResponseData, ResponseHandlerState } from './types';
+import {
+  PASSTHROUGH_COMMAND_TYPE,
+  RESPONSE_COMMAND_TYPE,
+  SHUTDOWN_COMMAND_TYPE,
+  TAKE_REQUEST_COMMAND_TYPE,
+} from './command';
+import { RequestLink } from './requestLink';
+import {
+  Command,
+  Context,
+  RequestLinkStatus,
+  ResponseData,
+  ResponseHandlerInstance,
+} from './types';
 
-export class RequestLink extends Error {
-  __requestLink__: true;
-
-  constructor(message: string = 'Request link') {
-    super(message);
-    this.__requestLink__ = true;
-  }
+function getEndlessScenarioMessage(key: string) {
+  return key + ' response handler has an endless scenario behaviour';
 }
 
-export function isRequestLink(error: Error) {
-  return error instanceof RequestLink;
+function getIncorrectCommandMessage(key: string) {
+  return key + ' response handler returned incorrect command';
 }
 
-export function runGenerator(responseHandlerState: ResponseHandlerState): ResponseData {
-  if (responseHandlerState.shutdown) {
-    throw new RequestLink();
+export function runGenerator(
+  context: Context,
+  responseHandlerInstance: ResponseHandlerInstance,
+): ResponseData | RequestLink {
+  if (responseHandlerInstance.shutdown) {
+    return new RequestLink(RequestLinkStatus.SHUTDOWN);
   }
 
-  if (responseHandlerState.instance == null) {
-    responseHandlerState.instance = responseHandlerState.responseHandler(responseHandlerState.context);
+  if (responseHandlerInstance.await) {
+    const currentRequest = context.getCurrentRequest();
+    const pass = responseHandlerInstance.await(currentRequest);
+    if (pass) {
+      responseHandlerInstance.await = null;
+      responseHandlerInstance.nextValue = currentRequest;
+      return runGenerator(context, responseHandlerInstance);
+    }
+    return new RequestLink(RequestLinkStatus.AWAIT);
   }
 
-  const iteratorResult = responseHandlerState.instance.next();
+  if (responseHandlerInstance.generatorInstance == null) {
+    responseHandlerInstance.generatorInstance = responseHandlerInstance.handler(context);
+  }
+
+  const nextValue = responseHandlerInstance.nextValue;
+  responseHandlerInstance.nextValue = undefined;
+  const iteratorResult = responseHandlerInstance.generatorInstance.next(nextValue);
 
   if (iteratorResult.done) {
-    responseHandlerState.instance = responseHandlerState.responseHandler(responseHandlerState.context);
-    return runGenerator(responseHandlerState);
+    const used = responseHandlerInstance.used;
+    responseHandlerInstance.used = false;
+    responseHandlerInstance.generatorInstance = null;
+
+    if (used) {
+      return runGenerator(context, responseHandlerInstance);
+    }
+    throw new Error(getEndlessScenarioMessage(responseHandlerInstance.handlerKey));
   }
 
   const command = iteratorResult.value as Command;
 
   switch (command.type) {
     case RESPONSE_COMMAND_TYPE: {
-      return command.payload;
+      responseHandlerInstance.used = true;
+      return typeof command.payload === 'function' ? command.payload() : command.payload;
     }
     case PASSTHROUGH_COMMAND_TYPE: {
-      throw new RequestLink();
+      responseHandlerInstance.used = true;
+      return new RequestLink(RequestLinkStatus.PASSTHROUGH);
     }
     case SHUTDOWN_COMMAND_TYPE: {
-      responseHandlerState.shutdown = true;
-      throw new RequestLink();
+      responseHandlerInstance.shutdown = true;
+      return new RequestLink(RequestLinkStatus.SHUTDOWN);
+    }
+    case TAKE_REQUEST_COMMAND_TYPE: {
+      responseHandlerInstance.await = command.payload ?? (() => true);
+      return runGenerator(context, responseHandlerInstance);
     }
     default: {
-      throw new Error('Incorrect command');
+      throw new Error(getIncorrectCommandMessage(responseHandlerInstance.handlerKey));
     }
   }
 }

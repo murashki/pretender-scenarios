@@ -1,4 +1,4 @@
-import { PassthroughCommand } from './index';
+import { PassthroughCommand } from './';
 
 export type PassthroughCommandCreator = {
   (): PassthroughCommand;

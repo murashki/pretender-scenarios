@@ -1,5 +1,5 @@
-import { BaseContext, Context } from './index';
+import { BaseContext, Context } from './';
 
 export type ResponseHandler<TContext extends BaseContext = Context> = {
-  (context: TContext): Generator;
+  (context: TContext): Generator<any, any, any>;
 };
